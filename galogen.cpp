@@ -17,7 +17,7 @@ limitations under the License.
 /**
  * G A L O G E N
  *
- * Galogen generates headers, as well as code to load OpenGL entry points 
+ * Galogen generates headers, as well as code to load OpenGL entry points
  * for the exact API version, profile and extensions that you specify.
  *
  */
@@ -37,34 +37,34 @@ limitations under the License.
 namespace galogen {
 
 // Information about an API type, such as GLuint or GLfloat.
-struct TypeInfo {  
+struct TypeInfo {
   // Name of this type.
   std::string name;
-  
+
   // Legal C code for type declaration.
   std::string type_cdecl;
-  
+
   // Name of another type that this type requires.
   std::string requires;
-  
+
   // API name for which this type definition applies.
   std::string api;
 };
 
 // Information about an enumerant, i.e. GL_TEXTURE_2D.
-struct EnumerantInfo {  
+struct EnumerantInfo {
   // Name of this enumerant.
   std::string name;
-  
+
   // Alternative name for this enumerant.
   std::string alias;
-  
+
   // Value of this enumerant.
   std::string value;
-  
+
   // Legal C suffix to append to the value;
   std::string suffix;
-  
+
   // API name for which this enumerant definition applies.
   std::string api;
 };
@@ -73,10 +73,10 @@ struct EnumerantInfo {
 struct GroupInfo {
    // Name of the group, i.e. "AccumOp".
    std::string name;
-   
+
    // List of enumerants that are members of this group.
    std::vector<const EnumerantInfo*> enums;
-   
+
    // Always empty.
    std::string api;
 };
@@ -85,22 +85,22 @@ struct GroupInfo {
 // Information about an API command, i.e. glBindTexture
 struct CommandInfo {
   // Information about a command parameter.
-  struct ParamInfo {    
+  struct ParamInfo {
     // Name of the parameter.
     std::string name;
-    
+
     // The full C type of the parameter (e.g. "const GLfloat*").
     std::string ctype;
-    
+
     // Name of the API type that this parameter's type references.
     // For example, if ctype is "const GLfloat*", this will be "GLfloat".
     // If ctype doesn't reference any API-specific types (e.g. "const void*"),
     // this field will be empty.
     std::string referenced_api_type;
-    
+
     // Group of this parameter.
     std::string group;
-    
+
     // According to official docs, "parameter length, either an integer
     // specifying the number of elements of the parameter r a complex string
     // expression with poorly defined syntax, usually representing a length that
@@ -109,32 +109,32 @@ struct CommandInfo {
     // Take from that what you will.
     std::string len;
   };
-   
+
   // Name of this command.
   std::string name;
-  
+
   // Corresponding C function prototype, up to and including the function name,
   // but not the parameters.
   std::string prototype;
-  
+
   // C type returned by this command, e.g. "const GLchar*".
   std::string return_ctype;
-  
+
   // API-specific type, such as GLuint, referenced by this command's return
   // type. If the command's return type doesn't reference any API-specific types
   // (e.g. "void"), this field is empty.
   std::string referenced_api_type;
-  
+
   // List of this command's parameters.
   std::vector<ParamInfo> parameters;
- 
+
   // Name of another command that this command is an alias of.
   std::string alias;
-  
+
   // Name of another command that is the vector equivalent for
   // this command.
   std::string vecequiv;
-   
+
   // Always empty.
   std::string api;
 };
@@ -152,12 +152,12 @@ public:
                      const std::string &profile,
                      int api_ver_maj,
                      int api_ver_min){}
-  
+
   virtual void processType(const TypeInfo &type){}
   virtual void processEnumGroup(const GroupInfo &group){}
   virtual void processEnumerant(const EnumerantInfo &type){}
   virtual void processCommand(const CommandInfo &type){}
-  
+
   // Invoked at the end of output generation.
   virtual void end(){}
 };
@@ -200,18 +200,18 @@ template <class T>
 class ApiEntity {
 public:
   void add(const T &e) { set_.push_back(e); }
-  
+
   const T* get(const char *api) const {
     const T *result = nullptr;
     for (const T &e : set_) {
       if ((e.api.empty()  && result == nullptr) ||
           (!e.api.empty() && e.api == api)) {
         result = &e;
-      } 
+      }
     }
     return result;
   }
-  
+
   // Mark this entity as processed.
   void markProcessed() { processed_ = true; }
 
@@ -320,7 +320,7 @@ void populateEntity(CommandInfo::ParamInfo *info,
         info->ctype += info->referenced_api_type;
       } else if (strcmp(tag_name, "name") == 0) {
         info->name = elem->GetText();
-        
+
       } else {
         FAIL("Unknown tag \"%s\" on line %d\n",
              tag_name,
@@ -387,7 +387,7 @@ public:
   explicit ApiVersion(const char *version_string) {
     static std::regex expr("^([0-9]+)\\.([0-9]+)$",
                            std::regex_constants::ECMAScript);
-    std::cmatch match; 
+    std::cmatch match;
     std::regex_match(version_string, match, expr);
     if (match.size() == 3) {
       ver_maj_ = atoi(match[1].str().c_str());
@@ -404,7 +404,7 @@ public:
     }
     return false;
   }
-  
+
   bool operator>(const ApiVersion &other) const {
     return !(*this <= other);
   }
@@ -458,7 +458,7 @@ void processOperations(
         entity_sets[entity_type].insert(name_attrib);
         if (strcmp(entity_type, "command") == 0) {
           // Types are (usually) not directly specified in the feature
-          // element. They are supposed to be picked up transitively via 
+          // element. They are supposed to be picked up transitively via
           // command signatures. Same applies to groups.
           const CommandInfo *command =
             command_map.at(name_attrib).get(options.api_name.c_str());
@@ -489,12 +489,12 @@ void generate(GenerationOptions &options) {
           "Failed to load file %s",
           options.registry_file_name.c_str());
   tinyxml2::XMLElement *root = spec.RootElement();
-  
+
   EntityMap<TypeInfo> type_map;
   EntityMap<EnumerantInfo> enum_map;
   EntityMap<CommandInfo> command_map;
   EntityMap<GroupInfo> group_map;
-  
+
   // Load information about API entities into the maps.
   loadEntities(root->FirstChildElement("types"), "type", type_map);
   loadEntities(root->FirstChildElement("commands"), "command", command_map);
@@ -605,7 +605,7 @@ void generate(GenerationOptions &options) {
   output_type(type_map["GLuint"]);
   output_type(type_map["GLsizei"]);
   output_type(type_map["GLchar"]);
- 
+
   const std::unordered_set<std::string> &types = entity_sets["type"];
   for (const auto &type_name : types) {
     auto type_it = type_map.find(type_name);
@@ -644,7 +644,7 @@ void generate(GenerationOptions &options) {
             options.api_name.c_str());
     options.generator->processEnumerant(*info);
   }
- 
+
   const std::unordered_set<std::string> &commands = entity_sets["command"];
   for (const auto &command_name : commands) {
     auto command_it = command_map.find(command_name);
@@ -825,14 +825,19 @@ public:
             command.name.c_str());
 
     // Add a macro that defines the command name to call the function pointer.
-    fprintf(output_h_, "#define %s _glptr_%s\n",
+    fprintf(output_h_, "static inline %s %s(%s) {\n return _glptr_%s(%s);\n}\n",
+            command.return_ctype.c_str(),
             command.name.c_str(),
-            command.name.c_str());
+            parameter_list_sig.c_str(),
+            command.name.c_str(),
+            parameter_list_call.c_str());
     if (!command.alias.empty()) {
-      fprintf(output_h_,
-              "#define %s %s\n",
+      fprintf(output_h_, "static inline %s %s(%s) {\n  return _glptr_%s(%s);\n}\n",
+              command.return_ctype.c_str(),
               command.alias.c_str(),
-              command.name.c_str());
+              parameter_list_sig.c_str(),
+              command.name.c_str(),
+              parameter_list_call.c_str());
     }
     // Output loader function to .c file.
     fprintf(output_c_, // Signature.
@@ -856,7 +861,7 @@ public:
             command.name.c_str(),
             command.name.c_str());
   }
-  
+
   // Invoked at the end of output generation.
   void end() override {
     fprintf(output_h_, "#if defined(__cplusplus)\n}\n#endif\n");
@@ -864,7 +869,7 @@ public:
     fclose(output_h_);
     fclose(output_c_);
   }
-  
+
 private:
   FILE *output_h_;
   FILE *output_c_;
@@ -873,20 +878,20 @@ private:
 const char *help_message = R"STR(
 Galogen v. 1.0
 ===============
-Galogen generates code to load OpenGL entry points  for the exact API version, 
+Galogen generates code to load OpenGL entry points  for the exact API version,
 profile and extensions that you specify.
 
 Usage:
-  galogen <path to GL registry XML file> [options] 
+  galogen <path to GL registry XML file> [options]
 
   --api - API name, such as gl or gles2. Default is gl.
 Options:
   --ver - API version. Default is 4.0.
   --profile - Which API profile to generate the loader for. Allowed values are "core" and "compatibility". Default is "core".
-  --exts - A comma-separated list of extensions. Default is empty. 
-  --filename - Name for generated files (<api>_<ver>_<profile> by default). 
-  --generator - Which generator to use. Default is "c_noload". 
-  
+  --exts - A comma-separated list of extensions. Default is empty.
+  --filename - Name for generated files (<api>_<ver>_<profile> by default).
+  --generator - Which generator to use. Default is "c_noload".
+
 Example:
   ./galogen gl.xml --api gl --ver 4.5 --profile core --filename gl
 )STR";
