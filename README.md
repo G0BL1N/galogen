@@ -2,7 +2,8 @@ Galogen
 =======
 
 Galogen generates code to load OpenGL entry points  for the exact API version,
-profile and extensions that you specify. This is fork of the Galogen, tweaked to be used with Kotlin Native.
+profile and extensions that you specify. 
+This is fork of the Galogen, tweaked to be used with Kotlin Native.
 If you are looking for Galogen itself, visit original [repository](https://github.com/google/galogen) or [website](http://galogen.gpfault.net/)
 
 Usage
